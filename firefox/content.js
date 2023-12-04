@@ -3,7 +3,7 @@
 const isFirefox = !chrome.app;
 
 function updateSettings() {
-    browser.storage.local.get(['blockingMessageTTV','forcedQualityTTV','proxyTTV','proxyQualityTTV']).then(result => {
+    browser.storage.local.get(['blockingMessageTTV', 'forcedQualityTTV', 'proxyTTV', 'proxyQualityTTV']).then(result => {
         var settings = {
             BannerVisible: true,
             ForcedQuality: null,
@@ -71,7 +71,7 @@ function removeVideoAds() {
                 }
             });
         }
-    } catch (err) {}
+    } catch (err) { }
 
     //Send settings updates to worker.
     window.addEventListener('message', (event) => {
@@ -164,7 +164,7 @@ function removeVideoAds() {
             `;
             super(URL.createObjectURL(new Blob([newBlobStr])));
             twitchMainWorker = this;
-            this.onmessage = function(e) {
+            this.onmessage = function (e) {
                 if (e.data.key == 'ShowAdBlockBanner') {
                     if (!TwitchAdblockSettings.BannerVisible) {
                         return;
@@ -255,7 +255,7 @@ function removeVideoAds() {
                                                 }
                                             }
                                             var currentQualityLS = window.localStorage.getItem('video-quality');
-                                            
+
                                             lowQuality[qualityToSelect].click();
                                             window.localStorage.setItem('video-quality', currentQualityLS);
 
@@ -307,11 +307,11 @@ function removeVideoAds() {
     function hookWorkerFetch() {
         console.log('Twitch adblocker is enabled');
         var realFetch = fetch;
-        fetch = async function(url, options) {
+        fetch = async function (url, options) {
             if (typeof url === 'string') {
                 if (url.includes('video-weaver')) {
-                    return new Promise(function(resolve, reject) {
-                        var processAfter = async function(response) {
+                    return new Promise(function (resolve, reject) {
+                        var processAfter = async function (response) {
                             //Here we check the m3u8 for any ads and also try fallback player types if needed.
 
                             var responseText = await response.text();
@@ -327,10 +327,10 @@ function removeVideoAds() {
 
                             resolve(new Response(weaverText));
                         };
-                        var send = function() {
-                            return realFetch(url, options).then(function(response) {
+                        var send = function () {
+                            return realFetch(url, options).then(function (response) {
                                 processAfter(response);
-                            })['catch'](function(err) {
+                            })['catch'](function (err) {
                                 reject(err);
                             });
                         };
@@ -345,8 +345,8 @@ function removeVideoAds() {
                     if (isPBYPRequest) {
                         url = '';
                     }
-                    return new Promise(function(resolve, reject) {
-                        var processAfter = async function(response) {
+                    return new Promise(function (resolve, reject) {
+                        var processAfter = async function (response) {
                             if (response.status == 200) {
                                 encodingsM3u8 = await response.text();
                                 var streamInfo = StreamInfos[channelName];
@@ -381,10 +381,10 @@ function removeVideoAds() {
                                 resolve(response);
                             }
                         };
-                        var send = function() {
-                            return realFetch(url, options).then(function(response) {
+                        var send = function () {
+                            return realFetch(url, options).then(function (response) {
                                 processAfter(response);
-                            })['catch'](function(err) {
+                            })['catch'](function (err) {
                                 reject(err);
                             });
                         };
@@ -434,7 +434,7 @@ function removeVideoAds() {
                                 return matchedResolutionUrl ? matchedResolutionUrl : encodingsLines[i];
                             }
                         } else if ((!resolutionInfo || resolution == resolutionInfo.Resolution) &&
-                                   (!matchedResolutionUrl || (!matchedFrameRate && frameRate == resolutionInfo.FrameRate))) {
+                            (!matchedResolutionUrl || (!matchedFrameRate && frameRate == resolutionInfo.FrameRate))) {
                             matchedResolutionUrl = encodingsLines[i];
                             matchedFrameRate = frameRate == resolutionInfo.FrameRate;
                             if (matchedFrameRate) {
@@ -492,7 +492,7 @@ function removeVideoAds() {
 
     function stripUnusedParams(str, params) {
         if (!params) {
-            params = [ 'token', 'sig' ];
+            params = ['token', 'sig'];
         }
         var tempUrl = new URL('https://localhost/' + str);
         for (var i = 0; i < params.length; i++) {
@@ -505,7 +505,7 @@ function removeVideoAds() {
         //Checks the m3u8 for ads and if it finds one, instead returns an ad-free stream.
 
         var streamInfo = StreamInfosByUrl[url];
-        
+
         //Ad blocking for squad streams is disabled due to the way multiple weaver urls are used. No workaround so far.
         if (IsSquadStream == true) {
             return textStr;
@@ -525,12 +525,12 @@ function removeVideoAds() {
         if (haveAdTags) {
 
             var isMidroll = textStr.includes('"MIDROLL"') || textStr.includes('"midroll"');
-        
+
             //Reduces ad frequency. TODO: Reduce the number of requests. This is really spamming Twitch with requests.
             if (!isMidroll) {
                 try {
                     //tryNotifyTwitch(textStr);
-                } catch (err) {}
+                } catch (err) { }
             }
 
             var currentResolution = null;
@@ -543,7 +543,7 @@ function removeVideoAds() {
                     }
                 }
             }
-            
+
             // Keep the m3u8 around for a little while (once per ad) before requesting a new one
             var encodingsM3U8Cache = streamInfo.EncodingsM3U8Cache[playerType];
             if (encodingsM3U8Cache) {
@@ -564,7 +564,7 @@ function removeVideoAds() {
                     Resolution: null
                 };
             }
-            
+
             if (playerType === 'proxy') {
                 try {
                     var proxyType = TwitchAdblockSettings.ProxyType ? TwitchAdblockSettings.ProxyType : DefaultProxyType;
@@ -573,7 +573,7 @@ function removeVideoAds() {
                     const match = /(hls|vod)\/(.+?)$/gim.exec(tempUrl);*/
                     switch (proxyType) {
                         case 'TTV LOL':
-                            encodingsM3u8Response = await realFetch('https://api.ttv.lol/playlist/' + CurrentChannelName + '.m3u8%3Fallow_source%3Dtrue'/* + encodeURIComponent(match[2])*/, {headers: {'X-Donate-To': 'https://ttv.lol/donate'}});
+                            encodingsM3u8Response = await realFetch('https://api.ttv.lol/playlist/' + CurrentChannelName + '.m3u8%3Fallow_source%3Dtrue'/* + encodeURIComponent(match[2])*/, { headers: { 'X-Donate-To': 'https://ttv.lol/donate' } });
                             break;
                         /*case 'Purple Adblock':// Broken...
                             encodingsM3u8Response = await realFetch('https://eu1.jupter.ga/channel/' + CurrentChannelName);*/
@@ -584,10 +584,10 @@ function removeVideoAds() {
                     if (encodingsM3u8Response && encodingsM3u8Response.status === 200) {
                         return getStreamForResolution(streamInfo, currentResolution, await encodingsM3u8Response.text(), textStr, playerType, realFetch);
                     }
-                } catch (err) {}
+                } catch (err) { }
                 return textStr;
             }
-            
+
             var accessTokenResponse = await getAccessToken(CurrentChannelName, playerType);
             if (accessTokenResponse.status === 200) {
                 var accessToken = await accessTokenResponse.json();
@@ -601,7 +601,7 @@ function removeVideoAds() {
                     } else {
                         return textStr;
                     }
-                } catch (err) {}
+                } catch (err) { }
                 return textStr;
             } else {
                 return textStr;
@@ -630,14 +630,14 @@ function removeVideoAds() {
     function parseAttributes(str) {
         return Object.fromEntries(
             str.split(/(?:^|,)((?:[^=]*)=(?:"[^"]*"|[^,]*))/)
-            .filter(Boolean)
-            .map(x => {
-                const idx = x.indexOf('=');
-                const key = x.substring(0, idx);
-                const value = x.substring(idx + 1);
-                const num = Number(value);
-                return [key, Number.isNaN(num) ? value.startsWith('"') ? JSON.parse(value) : value : num];
-            }));
+                .filter(Boolean)
+                .map(x => {
+                    const idx = x.indexOf('=');
+                    const key = x.substring(0, idx);
+                    const value = x.substring(idx + 1);
+                    const num = Number(value);
+                    return [key, Number.isNaN(num) ? value.startsWith('"') ? JSON.parse(value) : value : num];
+                }));
     }
 
     async function tryNotifyTwitch(streamM3u8) {
@@ -816,7 +816,7 @@ function removeVideoAds() {
                 }
                 if (isCorrectBuffer && isLive) {
                     //A timer is needed due to the player not resuming without it.
-                    setTimeout(function() {
+                    setTimeout(function () {
                         //If latency to broadcaster is above 5 or 15 seconds upon switching tabs, we pause and play the player to reset the latency.
                         //If latency is between 0-6, user can manually pause and resume to reset latency further.
                         if (videoPlayer.isLiveLowLatency() && videoPlayer.getLiveLatency() > 5) {
@@ -828,8 +828,8 @@ function removeVideoAds() {
                         }
                     }, 3000);
                 }
-            } catch (err) {}
-        } catch (err) {}
+            } catch (err) { }
+        } catch (err) { }
     }
 
     var localDeviceID = null;
@@ -837,7 +837,7 @@ function removeVideoAds() {
 
     function hookFetch() {
         var realFetch = window.fetch;
-        window.fetch = function(url, init, ...args) {
+        window.fetch = function (url, init, ...args) {
             if (typeof url === 'string') {
                 //Check if squad stream.
                 if (window.location.pathname.includes('/squad')) {
@@ -957,7 +957,7 @@ if (isFirefox) {
         appendBlockingScript();
     });
 } else {
-    chrome.storage.local.get(['onOffTTV'], function(result) {
+    chrome.storage.local.get(['onOffTTV'], function (result) {
         if (chrome.runtime.lastError) {
             appendBlockingScript();
             return;
